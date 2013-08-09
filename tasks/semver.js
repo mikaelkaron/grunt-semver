@@ -1,0 +1,122 @@
+/*
+ * grunt-semver
+ * https://github.com/mikaelkaron/grunt-semver
+ *
+ * Copyright (c) 2013 Mikael Karon
+ * Licensed under the MIT license.
+ */
+
+module.exports = function(grunt) {
+	"use strict";
+
+	var semver = require("semver");
+	var SPACE = "space";
+	var VERSION = "version";
+	var OPTIONS = {};
+
+	OPTIONS[SPACE] = "\t";
+
+	function format() {
+		/*jshint validthis:true */
+		var prerelease = this.prerelease;
+		var build = this.build;
+		var result = this.major + '.' + this.minor + '.' + this.patch;
+
+		if (prerelease && prerelease.length) {
+			result += '-' + prerelease.join('.');
+		}
+
+		if (build && build.length) {
+			result += "+" + build;
+		}
+
+		return result;
+	}
+
+	grunt.task.registerMultiTask("semver", "Semantic versioner for grunt", function (phase, part) {
+		var options = this.options(OPTIONS);
+
+		// Log flags (if verbose)
+		grunt.log.verbose.writeflags(options);
+
+		switch (phase) {
+			case "valid" :
+				if (part) {
+					try {
+						grunt.log.ok(format.call(semver(part)));
+					}
+					catch (e) {
+						grunt.log.error(e);
+					}
+				}
+				else {
+					this.files.forEach(function (file) {
+						var src = file.src;
+						var json = grunt.file.readJSON(src);
+
+						try {
+							grunt.log.ok(src + " : " + format.call(semver(json[VERSION])));
+						}
+						catch (e) {
+							grunt.log.error(e);
+						}
+					});
+				}
+				break;
+
+			case "set" :
+				this.files.forEach(function (file) {
+					var src = file.src;
+					var dest = file.dest || src;
+					var json = grunt.file.readJSON(src);
+					var version;
+
+					try {
+						version = json[VERSION] = format.call(semver(part));
+
+						grunt.log.ok(src + " : " + version);
+
+						grunt.file.write(dest, JSON.stringify(json, null, options[SPACE]));
+					}
+					catch (e) {
+						grunt.log.error(e);
+					}
+				});
+				break;
+
+			case "bump" :
+				this.files.forEach(function (file) {
+					var src = file.src;
+					var dest = file.dest || src;
+					var json = grunt.file.readJSON(src);
+					var version;
+
+					switch (part) {
+						case "major" :
+						case "minor" :
+						case "patch" :
+						case "prerelease" :
+							try {
+								version = json[VERSION] = format.call(semver(json[VERSION]).inc(part));
+
+								grunt.log.ok(src + " : " + version);
+
+								grunt.file.write(dest, JSON.stringify(json, null, options[SPACE]));
+							}
+							catch (e) {
+								grunt.log.error(e);
+							}
+
+							break;
+
+						default :
+							grunt.fail.warn("Unknown part '" + part + "'");
+					}
+				});
+				break;
+
+			default :
+				grunt.fail.warn("Unknown phase '" + phase + "'");
+		}
+	});
+};
