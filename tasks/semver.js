@@ -49,7 +49,7 @@ module.exports = function(grunt) {
 						grunt.log.ok(format.call(semver(part)));
 					}
 					catch (e) {
-						grunt.log.error(e);
+						grunt.fail.warn(e);
 					}
 				}
 				else {
@@ -61,7 +61,7 @@ module.exports = function(grunt) {
 							grunt.log.ok(src + " : " + format.call(semver(json[VERSION])));
 						}
 						catch (e) {
-							grunt.log.error(e);
+							grunt.fail.warn(e);
 						}
 					});
 				}
@@ -82,7 +82,7 @@ module.exports = function(grunt) {
 						grunt.file.write(dest, JSON.stringify(json, null, options[SPACE]));
 					}
 					catch (e) {
-						grunt.log.error(e);
+						grunt.fail.warn(e);
 					}
 				});
 				break;
