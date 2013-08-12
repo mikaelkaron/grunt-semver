@@ -10,6 +10,7 @@ module.exports = function(grunt) {
 	"use strict";
 
 	var semver = require("semver");
+
 	var SPACE = "space";
 	var VERSION = "version";
 	var OPTIONS = {};
@@ -18,16 +19,18 @@ module.exports = function(grunt) {
 
 	function format() {
 		/*jshint validthis:true */
-		var prerelease = this.prerelease;
-		var build = this.build;
-		var result = this.major + '.' + this.minor + '.' + this.patch;
+		var me = this;
+
+		var prerelease = me.prerelease;
+		var build = me.build;
+		var result = [ me.major, me.minor, me.patch ].join(".");
 
 		if (prerelease && prerelease.length) {
-			result += '-' + prerelease.join('.');
+			result += '-' + prerelease.join(".");
 		}
 
 		if (build && build.length) {
-			result += "+" + build;
+			result += "+" + build.join(".");
 		}
 
 		return result;
