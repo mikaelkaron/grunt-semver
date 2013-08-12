@@ -36,7 +36,7 @@ module.exports = function(grunt) {
 		return result;
 	}
 
-	grunt.task.registerMultiTask("semver", "Semantic versioner for grunt", function (phase, part) {
+	grunt.task.registerMultiTask("semver", "Semantic versioner for grunt", function (phase, part, build) {
 		var options = this.options(OPTIONS);
 
 		// Log flags (if verbose)
@@ -46,7 +46,7 @@ module.exports = function(grunt) {
 			case "valid" :
 				if (part) {
 					try {
-						grunt.log.ok(format.call(semver(part)));
+						grunt.log.ok(format.call(build ? semver(semver(part) + "+" + build) : semver(part)));
 					}
 					catch (e) {
 						grunt.fail.warn(e);
@@ -58,7 +58,7 @@ module.exports = function(grunt) {
 						var json = grunt.file.readJSON(src);
 
 						try {
-							grunt.log.ok(src + " : " + format.call(semver(json[VERSION])));
+							grunt.log.ok(src + " : " + format.call(build ? semver(semver(json[VERSION]) + "+" + build) : semver(json[VERSION])));
 						}
 						catch (e) {
 							grunt.fail.warn(e);
@@ -75,7 +75,7 @@ module.exports = function(grunt) {
 					var version;
 
 					try {
-						version = json[VERSION] = format.call(semver(part));
+						version = json[VERSION] = format.call(build ? semver(semver(part) + "+" + build) : semver(part));
 
 						grunt.log.ok(src + " : " + version);
 
@@ -100,7 +100,7 @@ module.exports = function(grunt) {
 						case "patch" :
 						case "prerelease" :
 							try {
-								version = json[VERSION] = format.call(semver(json[VERSION]).inc(part));
+								version = json[VERSION] = format.call((build ? semver(semver(json[VERSION]) + "+" + build) : semver(json[VERSION])).inc(part));
 
 								grunt.log.ok(src + " : " + version);
 
