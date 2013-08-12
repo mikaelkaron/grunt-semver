@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/mikaelkaron/grunt-semver.png)](https://travis-ci.org/mikaelkaron/grunt-semver)
+[![NPM version](https://badge.fury.io/js/grunt-semver.png)](http://badge.fury.io/js/grunt-semver)
+
 # grunt-semver
 
 > Semantic versioner for grunt
