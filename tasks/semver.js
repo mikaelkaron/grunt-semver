@@ -10,6 +10,7 @@ module.exports = function(grunt) {
 	"use strict";
 
 	var semver = require("semver");
+
 	var SPACE = "space";
 	var VERSION = "version";
 	var OPTIONS = {};
@@ -18,22 +19,24 @@ module.exports = function(grunt) {
 
 	function format() {
 		/*jshint validthis:true */
-		var prerelease = this.prerelease;
-		var build = this.build;
-		var result = this.major + '.' + this.minor + '.' + this.patch;
+		var me = this;
+
+		var prerelease = me.prerelease;
+		var build = me.build;
+		var result = [ me.major, me.minor, me.patch ].join(".");
 
 		if (prerelease && prerelease.length) {
-			result += '-' + prerelease.join('.');
+			result += '-' + prerelease.join(".");
 		}
 
 		if (build && build.length) {
-			result += "+" + build;
+			result += "+" + build.join(".");
 		}
 
 		return result;
 	}
 
-	grunt.task.registerMultiTask("semver", "Semantic versioner for grunt", function (phase, part) {
+	grunt.task.registerMultiTask("semver", "Semantic versioner for grunt", function (phase, part, build) {
 		var options = this.options(OPTIONS);
 
 		// Log flags (if verbose)
@@ -43,10 +46,10 @@ module.exports = function(grunt) {
 			case "valid" :
 				if (part) {
 					try {
-						grunt.log.ok(format.call(semver(part)));
+						grunt.log.ok(format.call(build ? semver(semver(part) + "+" + build) : semver(part)));
 					}
 					catch (e) {
-						grunt.log.error(e);
+						grunt.fail.warn(e);
 					}
 				}
 				else {
@@ -55,10 +58,10 @@ module.exports = function(grunt) {
 						var json = grunt.file.readJSON(src);
 
 						try {
-							grunt.log.ok(src + " : " + format.call(semver(json[VERSION])));
+							grunt.log.ok(src + " : " + format.call(build ? semver(semver(json[VERSION]) + "+" + build) : semver(json[VERSION])));
 						}
 						catch (e) {
-							grunt.log.error(e);
+							grunt.fail.warn(e);
 						}
 					});
 				}
@@ -72,14 +75,14 @@ module.exports = function(grunt) {
 					var version;
 
 					try {
-						version = json[VERSION] = format.call(semver(part));
+						version = json[VERSION] = format.call(build ? semver(semver(part) + "+" + build) : semver(part));
 
 						grunt.log.ok(src + " : " + version);
 
 						grunt.file.write(dest, JSON.stringify(json, null, options[SPACE]));
 					}
 					catch (e) {
-						grunt.log.error(e);
+						grunt.fail.warn(e);
 					}
 				});
 				break;
@@ -97,7 +100,7 @@ module.exports = function(grunt) {
 						case "patch" :
 						case "prerelease" :
 							try {
-								version = json[VERSION] = format.call(semver(json[VERSION]).inc(part));
+								version = json[VERSION] = format.call((build ? semver(semver(json[VERSION]) + "+" + build) : semver(json[VERSION])).inc(part));
 
 								grunt.log.ok(src + " : " + version);
 
