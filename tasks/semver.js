@@ -43,7 +43,7 @@ module.exports = function(grunt) {
 		grunt.log.verbose.writeflags(options);
 
 		switch (phase) {
-			case "valid" :
+			case "validate" :
 				if (part) {
 					try {
 						grunt.log.ok(format.call(build ? semver(semver(part) + "+" + build) : semver(part)));
@@ -75,7 +75,7 @@ module.exports = function(grunt) {
 					var version;
 
 					try {
-						version = json[VERSION] = format.call(build ? semver(semver(part) + "+" + build) : semver(part));
+						version = json[VERSION] = format.call(build ? semver(semver(part || json[VERSION]) + "+" + build) : semver(part || json[VERSION]));
 
 						grunt.log.ok(src + " : " + version);
 
