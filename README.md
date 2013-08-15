@@ -50,5 +50,7 @@ A string value that is used to format the output JSON
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
 
 ## Release History
+0.1.0 - First somewhat stable release  
+0.0.3 - Nothing to important  
 0.0.2 - Added support for `build`  
 0.0.1 - First release
