@@ -20,15 +20,12 @@ module.exports = function(grunt) {
 	function format() {
 		/*jshint validthis:true */
 		var me = this;
-
-		var prerelease = me.prerelease;
 		var build = me.build;
-		var result = [ me.major, me.minor, me.patch ].join(".");
 
-		if (prerelease && prerelease.length) {
-			result += '-' + prerelease.join(".");
-		}
+		// Call super
+		var result = me.format();
 
+		// Add build if it exists
 		if (build && build.length) {
 			result += "+" + build.join(".");
 		}
@@ -46,7 +43,7 @@ module.exports = function(grunt) {
 			case "validate" :
 				if (part) {
 					try {
-						grunt.log.ok(format.call(build ? semver(semver(part) + "+" + build) : semver(part)));
+						grunt.log.writeln(format.call(semver(build ? semver.clean(part) + "+" + build : part)).green);
 					}
 					catch (e) {
 						grunt.fail.warn(e);
@@ -54,11 +51,11 @@ module.exports = function(grunt) {
 				}
 				else {
 					this.files.forEach(function (file) {
-						var src = file.src;
-						var json = grunt.file.readJSON(src);
-
 						try {
-							grunt.log.ok(src + " : " + format.call(build ? semver(semver(json[VERSION]) + "+" + build) : semver(json[VERSION])));
+							var src = file.src;
+							var json = grunt.file.readJSON(src);
+
+							grunt.log.writeln(src + " : " + format.call(semver(build ?semver.clean(json[VERSION]) + "+" + build : json[VERSION])).green);
 						}
 						catch (e) {
 							grunt.fail.warn(e);
@@ -69,15 +66,16 @@ module.exports = function(grunt) {
 
 			case "set" :
 				this.files.forEach(function (file) {
-					var src = file.src;
-					var dest = file.dest || src;
-					var json = grunt.file.readJSON(src);
-					var version;
-
 					try {
-						version = json[VERSION] = format.call(build ? semver(semver(part || json[VERSION]) + "+" + build) : semver(part || json[VERSION]));
+						var src = file.src;
+						var dest = file.dest || src;
 
-						grunt.log.ok(src + " : " + version);
+						grunt.log.write(src + " : ");
+
+						var json = grunt.file.readJSON(src);
+						var version = json[VERSION] = format.call(semver(build ? semver.clean(part || json[VERSION]) + "+" + build : part || json[VERSION]).inc(part));
+
+						grunt.log.writeln(version.green);
 
 						grunt.file.write(dest, JSON.stringify(json, null, options[SPACE]));
 					}
@@ -88,34 +86,34 @@ module.exports = function(grunt) {
 				break;
 
 			case "bump" :
-				this.files.forEach(function (file) {
-					var src = file.src;
-					var dest = file.dest || src;
-					var json = grunt.file.readJSON(src);
-					var version;
-
-					switch (part) {
-						case "major" :
-						case "minor" :
-						case "patch" :
-						case "prerelease" :
+				switch (part) {
+					case "major" :
+					case "minor" :
+					case "patch" :
+					case "prerelease" :
+						this.files.forEach(function (file) {
 							try {
-								version = json[VERSION] = format.call((build ? semver(semver(json[VERSION]) + "+" + build) : semver(json[VERSION])).inc(part));
+								var src = file.src;
+								var dest = file.dest || src;
 
-								grunt.log.ok(src + " : " + version);
+								grunt.log.write(src + " : ");
+
+								var json = grunt.file.readJSON(src);
+								var version = json[VERSION] = format.call(semver(build ? semver.clean(json[VERSION]) + "+" + build : semver.clean(json[VERSION])).inc(part));
+
+								grunt.log.writeln(version.green);
 
 								grunt.file.write(dest, JSON.stringify(json, null, options[SPACE]));
 							}
 							catch (e) {
-								grunt.log.error(e);
+								grunt.fail.warn(e);
 							}
+						});
+						break;
 
-							break;
-
-						default :
-							grunt.fail.warn("Unknown part '" + part + "'");
-					}
-				});
+					default :
+						grunt.fail.warn("Unknown part '" + part + "'");
+				}
 				break;
 
 			default :
