@@ -111,17 +111,19 @@ module.exports = function(grunt) {
 				this.files.forEach(function (file) {
 					try {
 						var src = file.src;
-						var dest = file.dest || src;
 						var json = grunt.file.readJSON(src);
 
-						grunt.log.verbose.writeln(src + " version : " + (part ? part + " (override)" : json[VERSION]).cyan);
+						grunt.log.verbose.write(src + " version : " + json[VERSION].cyan);
+						if (part) {
+							grunt.log.verbose.write(" (but will use " + part.cyan + " instead)");
+						}
+						grunt.log.verbose.writeln();
+
 						grunt.log.write(src + " : ");
-
 						var version = json[VERSION] = format(semver(build ? semver.clean(part || json[VERSION]) + "+" + build : part || json[VERSION]));
-
 						grunt.log.writeln(version.green);
 
-						grunt.file.write(dest, JSON.stringify(json, null, options[SPACE]));
+						grunt.file.write(file.dest, JSON.stringify(json, null, options[SPACE]));
 					}
 					catch (e) {
 						grunt.fail.warn(e);
@@ -144,17 +146,15 @@ module.exports = function(grunt) {
 						this.files.forEach(function (file) {
 							try {
 								var src = file.src;
-								var dest = file.dest || src;
 								var json = grunt.file.readJSON(src);
 
 								grunt.log.verbose.writeln(src + " version : " + json[VERSION].cyan);
+
 								grunt.log.write(src + " : ");
-
 								var version = json[VERSION] = format(semver(build ? semver.clean(json[VERSION]) + "+" + build : semver.clean(json[VERSION])).inc(part));
-
 								grunt.log.writeln(version.green);
 
-								grunt.file.write(dest, JSON.stringify(json, null, options[SPACE]));
+								grunt.file.write(file.dest, JSON.stringify(json, null, options[SPACE]));
 							}
 							catch (e) {
 								grunt.fail.warn(e);
