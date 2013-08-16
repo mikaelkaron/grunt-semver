@@ -18,22 +18,17 @@ module.exports = function(grunt) {
 	var OPTIONS = {};
 	OPTIONS[SPACE] = "\t";
 
-	// grunt.template.process options
-	var PROCESS_OPTIONS = {
-		"delimiters" : SEMVER
-	};
-
 	/**
-	 * Formats a semver
+	 * Formats a semver version
+	 * @param {SemVer} version
 	 * @returns {String} Formatted semver
 	 */
-	function format() {
-		/*jshint validthis:true */
-		var me = this;
-		var build = me.build;
-
+	function format(version) {
 		// Call super
-		var result = me.format();
+		var result = version.format();
+
+		// Get build
+		var build = version.build;
 
 		// Add build if it exists
 		if (build && build.length) {
@@ -41,6 +36,19 @@ module.exports = function(grunt) {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Processes parameter
+	 * @param {*} param Paramter
+	 * @returns {*} Processed parameter
+	 */
+	function process(param) {
+		return grunt.util.kindOf(param) === "string"
+			? grunt.template.process(param, {
+				"delimiters" : SEMVER
+			})
+			: param;
 	}
 
 	// Add SEMVER delimiters
@@ -51,26 +59,26 @@ module.exports = function(grunt) {
 		// Get options (with defaults)
 		var options = this.options(OPTIONS);
 
+		// Process arguments
+		phase = process(phase);
+		part = process(part);
+		build = process(build);
+
 		// Log flags (if verbose)
 		grunt.log.verbose.writeflags(options);
-
-		// Process arguments
-		if (grunt.util.kindOf(phase) === "string") {
-			phase = grunt.template.process(phase, PROCESS_OPTIONS);
-		}
-		if (grunt.util.kindOf(part) === "string") {
-			part = grunt.template.process(part, PROCESS_OPTIONS);
-		}
-		if (grunt.util.kindOf(build) === "string") {
-			build = grunt.template.process(build, PROCESS_OPTIONS);
-		}
 
 		// Pick phase
 		switch (phase) {
 			case "validate" :
+				grunt.log.verbose.writeflags({
+					"phase": phase,
+					"version": part,
+					"build": build
+				});
+
 				if (part) {
 					try {
-						grunt.log.writeln(format.call(semver(build ? semver.clean(part) + "+" + build : part)).green);
+						grunt.log.writeln(format(semver(build ? semver.clean(part) + "+" + build : part)).green);
 					}
 					catch (e) {
 						grunt.fail.warn(e);
@@ -82,7 +90,9 @@ module.exports = function(grunt) {
 							var src = file.src;
 							var json = grunt.file.readJSON(src);
 
-							grunt.log.writeln(src + " : " + format.call(semver(build ? semver.clean(json[VERSION]) + "+" + build : json[VERSION])).green);
+							grunt.log.verbose.writeln(src + " version : " + json[VERSION].cyan);
+
+							grunt.log.writeln(src + " : " + format(semver(build ? semver.clean(json[VERSION]) + "+" + build : json[VERSION])).green);
 						}
 						catch (e) {
 							grunt.fail.warn(e);
@@ -92,19 +102,28 @@ module.exports = function(grunt) {
 				break;
 
 			case "set" :
+				grunt.log.verbose.writeflags({
+					"phase": phase,
+					"version": part,
+					"build": build
+				});
+
 				this.files.forEach(function (file) {
 					try {
 						var src = file.src;
-						var dest = file.dest || src;
+						var json = grunt.file.readJSON(src);
+
+						grunt.log.verbose.write(src + " version : " + json[VERSION].cyan);
+						if (part) {
+							grunt.log.verbose.write(" (but will use " + part.cyan + " instead)");
+						}
+						grunt.log.verbose.writeln();
 
 						grunt.log.write(src + " : ");
-
-						var json = grunt.file.readJSON(src);
-						var version = json[VERSION] = format.call(semver(build ? semver.clean(part || json[VERSION]) + "+" + build : part || json[VERSION]).inc(part));
-
+						var version = json[VERSION] = format(semver(build ? semver.clean(part || json[VERSION]) + "+" + build : part || json[VERSION]));
 						grunt.log.writeln(version.green);
 
-						grunt.file.write(dest, JSON.stringify(json, null, options[SPACE]));
+						grunt.file.write(file.dest, JSON.stringify(json, null, options[SPACE]));
 					}
 					catch (e) {
 						grunt.fail.warn(e);
@@ -113,6 +132,12 @@ module.exports = function(grunt) {
 				break;
 
 			case "bump" :
+				grunt.log.verbose.writeflags({
+					"phase": phase,
+					"part": part,
+					"build": build
+				});
+
 				switch (part) {
 					case "major" :
 					case "minor" :
@@ -121,16 +146,15 @@ module.exports = function(grunt) {
 						this.files.forEach(function (file) {
 							try {
 								var src = file.src;
-								var dest = file.dest || src;
+								var json = grunt.file.readJSON(src);
+
+								grunt.log.verbose.writeln(src + " version : " + json[VERSION].cyan);
 
 								grunt.log.write(src + " : ");
-
-								var json = grunt.file.readJSON(src);
-								var version = json[VERSION] = format.call(semver(build ? semver.clean(json[VERSION]) + "+" + build : semver.clean(json[VERSION])).inc(part));
-
+								var version = json[VERSION] = format(semver(build ? semver.clean(json[VERSION]) + "+" + build : semver.clean(json[VERSION])).inc(part));
 								grunt.log.writeln(version.green);
 
-								grunt.file.write(dest, JSON.stringify(json, null, options[SPACE]));
+								grunt.file.write(file.dest, JSON.stringify(json, null, options[SPACE]));
 							}
 							catch (e) {
 								grunt.fail.warn(e);
