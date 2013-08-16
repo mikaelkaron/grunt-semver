@@ -10,9 +10,12 @@ module.exports = function(grunt) {
 	"use strict";
 
 	var semver = require("semver");
-	var SEMVER = "semver";
 	var SPACE = "space";
 	var VERSION = "version";
+	var SEMVER = "semver";
+	var SEMVER_VALIDATE = SEMVER + ".validate";
+	var SEMVER_SET = SEMVER + ".set";
+	var SEMVER_BUMP = SEMVER + ".bump";
 
 	// Default options
 	var OPTIONS = {};
@@ -78,7 +81,11 @@ module.exports = function(grunt) {
 
 				if (part) {
 					try {
-						grunt.log.writeln(format(semver(build ? semver.clean(part) + "+" + build : part)).green);
+						grunt.event.emit(SEMVER_VALIDATE, (function(version) {
+							grunt.log.writeln(version.green);
+
+							return version;
+						}(format(semver(build ? semver.clean(part) + "+" + build : part)))).green);
 					}
 					catch (e) {
 						grunt.fail.warn(e);
@@ -86,17 +93,22 @@ module.exports = function(grunt) {
 				}
 				else {
 					this.files.forEach(function (file) {
-						try {
-							var src = file.src;
-							var json = grunt.file.readJSON(src);
+						file.src.forEach(function (src) {
+							try {
+								var json = grunt.file.readJSON(src);
 
-							grunt.log.verbose.writeln(src + " version : " + json[VERSION].cyan);
+								grunt.log.verbose.writeln(src + " version : " + json[VERSION].cyan);
 
-							grunt.log.writeln(src + " : " + format(semver(build ? semver.clean(json[VERSION]) + "+" + build : json[VERSION])).green);
-						}
-						catch (e) {
-							grunt.fail.warn(e);
-						}
+								var version = format(semver(build ? semver.clean(json[VERSION]) + "+" + build : json[VERSION]));
+
+								grunt.log.writeln(src + " : " + version.green);
+
+								grunt.event.emit(SEMVER_VALIDATE, version, src);
+							}
+							catch (e) {
+								grunt.fail.warn(e);
+							}
+						});
 					});
 				}
 				break;
@@ -109,25 +121,30 @@ module.exports = function(grunt) {
 				});
 
 				this.files.forEach(function (file) {
-					try {
-						var src = file.src;
-						var json = grunt.file.readJSON(src);
+					var dest = file.dest;
 
-						grunt.log.verbose.write(src + " version : " + json[VERSION].cyan);
-						if (part) {
-							grunt.log.verbose.write(" (but will use " + part.cyan + " instead)");
+					file.src.forEach(function (src) {
+						try {
+							var json = grunt.file.readJSON(src);
+
+							grunt.log.verbose.write(src + " version : " + json[VERSION].cyan);
+							if (part) {
+								grunt.log.verbose.write(" (but will use " + part.cyan + " instead)");
+							}
+							grunt.log.verbose.writeln();
+
+							grunt.log.write(src + " : ");
+							var version = json[VERSION] = format(semver(build ? semver.clean(part || json[VERSION]) + "+" + build : part || json[VERSION]));
+							grunt.log.writeln(version.green);
+
+							grunt.file.write(dest, JSON.stringify(json, null, options[SPACE]));
+
+							grunt.event.emit(SEMVER_SET, version, src, dest);
 						}
-						grunt.log.verbose.writeln();
-
-						grunt.log.write(src + " : ");
-						var version = json[VERSION] = format(semver(build ? semver.clean(part || json[VERSION]) + "+" + build : part || json[VERSION]));
-						grunt.log.writeln(version.green);
-
-						grunt.file.write(file.dest, JSON.stringify(json, null, options[SPACE]));
-					}
-					catch (e) {
-						grunt.fail.warn(e);
-					}
+						catch (e) {
+							grunt.fail.warn(e);
+						}
+					});
 				});
 				break;
 
@@ -144,21 +161,26 @@ module.exports = function(grunt) {
 					case "patch" :
 					case "prerelease" :
 						this.files.forEach(function (file) {
-							try {
-								var src = file.src;
-								var json = grunt.file.readJSON(src);
+							var dest = file.dest;
 
-								grunt.log.verbose.writeln(src + " version : " + json[VERSION].cyan);
+							file.src.forEach(function (src) {
+								try {
+									var json = grunt.file.readJSON(src);
 
-								grunt.log.write(src + " : ");
-								var version = json[VERSION] = format(semver(build ? semver.clean(json[VERSION]) + "+" + build : semver.clean(json[VERSION])).inc(part));
-								grunt.log.writeln(version.green);
+									grunt.log.verbose.writeln(src + " version : " + json[VERSION].cyan);
 
-								grunt.file.write(file.dest, JSON.stringify(json, null, options[SPACE]));
-							}
-							catch (e) {
-								grunt.fail.warn(e);
-							}
+									grunt.log.write(src + " : ");
+									var version = json[VERSION] = format(semver(build ? semver.clean(json[VERSION]) + "+" + build : semver.clean(json[VERSION])).inc(part));
+									grunt.log.writeln(version.green);
+
+									grunt.file.write(dest, JSON.stringify(json, null, options[SPACE]));
+
+									grunt.event.emit(SEMVER_BUMP, version, src, dest);
+								}
+								catch (e) {
+									grunt.fail.warn(e);
+								}
+							});
 						});
 						break;
 
