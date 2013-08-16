@@ -10,13 +10,23 @@ module.exports = function(grunt) {
 	"use strict";
 
 	var semver = require("semver");
-
+	var SEMVER = "semver";
 	var SPACE = "space";
 	var VERSION = "version";
-	var OPTIONS = {};
 
+	// Default options
+	var OPTIONS = {};
 	OPTIONS[SPACE] = "\t";
 
+	// grunt.template.process options
+	var PROCESS_OPTIONS = {
+		"delimiters" : SEMVER
+	};
+
+	/**
+	 * Formats a semver
+	 * @returns {String} Formatted semver
+	 */
 	function format() {
 		/*jshint validthis:true */
 		var me = this;
@@ -33,12 +43,29 @@ module.exports = function(grunt) {
 		return result;
 	}
 
-	grunt.task.registerMultiTask("semver", "Semantic versioner for grunt", function (phase, part, build) {
+	// Add SEMVER delimiters
+	grunt.template.addDelimiters(SEMVER, "{%", "%}");
+
+	// Register SEMVER task
+	grunt.task.registerMultiTask(SEMVER, "Semantic versioner for grunt", function (phase, part, build) {
+		// Get options (with defaults)
 		var options = this.options(OPTIONS);
 
 		// Log flags (if verbose)
 		grunt.log.verbose.writeflags(options);
 
+		// Process arguments
+		if (grunt.util.kindOf(phase) === "string") {
+			phase = grunt.template.process(phase, PROCESS_OPTIONS);
+		}
+		if (grunt.util.kindOf(part) === "string") {
+			part = grunt.template.process(part, PROCESS_OPTIONS);
+		}
+		if (grunt.util.kindOf(build) === "string") {
+			build = grunt.template.process(build, PROCESS_OPTIONS);
+		}
+
+		// Pick phase
 		switch (phase) {
 			case "validate" :
 				if (part) {
@@ -55,7 +82,7 @@ module.exports = function(grunt) {
 							var src = file.src;
 							var json = grunt.file.readJSON(src);
 
-							grunt.log.writeln(src + " : " + format.call(semver(build ?semver.clean(json[VERSION]) + "+" + build : json[VERSION])).green);
+							grunt.log.writeln(src + " : " + format.call(semver(build ? semver.clean(json[VERSION]) + "+" + build : json[VERSION])).green);
 						}
 						catch (e) {
 							grunt.fail.warn(e);
