@@ -50,6 +50,8 @@ A string value that is used to format the output JSON
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
 
 ## Release History
+
+0.1.4 - Added support for cli arguments  
 0.1.3 - Added support for event 
 0.1.2 - Added verbose logging  
 0.1.1 - Added support for templated arguments  
