@@ -10,7 +10,11 @@ module.exports = function(grunt) {
 	"use strict";
 
 	var semver = require("semver");
+	var _ = grunt.util._;
 	var SPACE = "space";
+	var PHASE = "phase";
+	var PART = "part";
+	var BUILD = "build";
 	var VERSION = "version";
 	var SEMVER = "semver";
 	var SEMVER_VALIDATE = SEMVER + ".validate";
@@ -41,19 +45,6 @@ module.exports = function(grunt) {
 		return result;
 	}
 
-	/**
-	 * Processes parameter
-	 * @param {*} param Paramter
-	 * @returns {*} Processed parameter
-	 */
-	function process(param) {
-		return grunt.util.kindOf(param) === "string"
-			? grunt.template.process(param, {
-				"delimiters" : SEMVER
-			})
-			: param;
-	}
-
 	// Add SEMVER delimiters
 	grunt.template.addDelimiters(SEMVER, "{%", "%}");
 
@@ -62,10 +53,39 @@ module.exports = function(grunt) {
 		// Get options (with defaults)
 		var options = this.options(OPTIONS);
 
+		// Store some locals
+		var name = this.name;
+		var target = this.target;
+		var args = this.args;
+
+		// Populate `options` with values
+		_.each([ PHASE, PART, BUILD ], function (key, index) {
+			options[key] = _.find([
+				args[index],
+				grunt.option([ name, target, key ].join(".")),
+				grunt.option([ name, key ].join(".")),
+				grunt.option(key),
+				options[key]
+			], function (value) {
+				return grunt.util.kindOf(value) !== "undefined";
+			});
+		});
+
+		// Process `options` with template
+		_.each([ PHASE, PART, BUILD ], function (key) {
+			var value = options[key];
+
+			if (grunt.util.kindOf(value) === "string") {
+				options[key] = grunt.template.process(value, {
+					"delimiters" : SEMVER
+				});
+			}
+		});
+
 		// Process arguments
-		phase = process(phase);
-		part = process(part);
-		build = process(build);
+		phase = options[PHASE];
+		part = options[PART];
+		build = options[BUILD];
 
 		// Log flags (if verbose)
 		grunt.log.verbose.writeflags(options);
@@ -73,12 +93,6 @@ module.exports = function(grunt) {
 		// Pick phase
 		switch (phase) {
 			case "validate" :
-				grunt.log.verbose.writeflags({
-					"phase": phase,
-					"version": part,
-					"build": build
-				});
-
 				if (part) {
 					try {
 						grunt.event.emit(SEMVER_VALIDATE, (function(version) {
@@ -114,12 +128,6 @@ module.exports = function(grunt) {
 				break;
 
 			case "set" :
-				grunt.log.verbose.writeflags({
-					"phase": phase,
-					"version": part,
-					"build": build
-				});
-
 				this.files.forEach(function (file) {
 					var dest = file.dest;
 
@@ -149,12 +157,6 @@ module.exports = function(grunt) {
 				break;
 
 			case "bump" :
-				grunt.log.verbose.writeflags({
-					"phase": phase,
-					"part": part,
-					"build": build
-				});
-
 				switch (part) {
 					case "major" :
 					case "minor" :
