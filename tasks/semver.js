@@ -99,7 +99,7 @@ module.exports = function(grunt) {
 							grunt.log.writeln(version.green);
 
 							return version;
-						}(format(semver(build ? semver.clean(part) + "+" + build : part)))).green);
+						}(format(semver(build ? semver.clean(part) + "+" + build : part)))));
 					}
 					catch (e) {
 						grunt.fail.warn(e);
