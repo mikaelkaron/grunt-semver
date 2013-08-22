@@ -51,6 +51,7 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 
 ## Release History
 
+0.1.5 - Externalize common code to separat modules  
 0.1.4 - Added support for cli arguments  
 0.1.3 - Added support for event 
 0.1.2 - Added verbose logging  
