@@ -1,7 +1,7 @@
 {
   "name": "grunt-semver",
   "description": "Semantic versioning for grunt",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "homepage": "https://github.com/mikaelkaron/grunt-semver",
   "author": {
     "name": "Mikael Karon",
@@ -22,7 +22,9 @@
   ],
   "main": "Gruntfile.js",
   "dependencies": {
-    "semver": "~2.1"
+    "semver": "~2.1",
+    "grunt-util-options": "~0.0.1",
+    "grunt-util-process": "~0.0.1"
   },
   "devDependencies": {
     "grunt-contrib-jshint": "~0.6.0",
