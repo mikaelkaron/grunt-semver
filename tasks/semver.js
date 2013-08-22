@@ -11,6 +11,8 @@ module.exports = function(grunt) {
 
 	var semver = require("semver");
 	var _ = grunt.util._;
+	var _process = require("grunt-util-process")(grunt);
+	var _options = require("grunt-util-options")(grunt);
 	var SPACE = "space";
 	var PHASE = "phase";
 	var PART = "part";
@@ -50,39 +52,14 @@ module.exports = function(grunt) {
 
 	// Register SEMVER task
 	grunt.task.registerMultiTask(SEMVER, "Semantic versioner for grunt", function (phase, part, build) {
-		// Get options (with defaults)
-		var options = this.options(OPTIONS);
+		var me = this;
 
-		// Store some locals
-		var name = this.name;
-		var target = this.target;
-		var args = this.args;
+		// Get options and process
+		var options = _process.call(_options.call(me, me.options(OPTIONS), PHASE, PART, BUILD), {
+			"delimiters" : SEMVER
+		}, PHASE, PART, BUILD);
 
-		// Populate `options` with values
-		_.each([ PHASE, PART, BUILD ], function (key, index) {
-			options[key] = _.find([
-				args[index],
-				grunt.option([ name, target, key ].join(".")),
-				grunt.option([ name, key ].join(".")),
-				grunt.option(key),
-				options[key]
-			], function (value) {
-				return grunt.util.kindOf(value) !== "undefined";
-			});
-		});
-
-		// Process `options` with template
-		_.each([ PHASE, PART, BUILD ], function (key) {
-			var value = options[key];
-
-			if (grunt.util.kindOf(value) === "string") {
-				options[key] = grunt.template.process(value, {
-					"delimiters" : SEMVER
-				});
-			}
-		});
-
-		// Process arguments
+		// Update parameters
 		phase = options[PHASE];
 		part = options[PART];
 		build = options[BUILD];
