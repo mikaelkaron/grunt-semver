@@ -13,8 +13,8 @@ module.exports = function(grunt) {
 	var _ = grunt.util._;
 	var _process = require("grunt-util-process")(grunt);
 	var _options = require("grunt-util-options")(grunt);
+	var _args = require("grunt-util-args")(grunt);
 	var SPACE = "space";
-	var PHASE = "phase";
 	var PART = "part";
 	var BUILD = "build";
 	var VERSION = "version";
@@ -22,6 +22,7 @@ module.exports = function(grunt) {
 	var SEMVER_VALIDATE = SEMVER + ".validate";
 	var SEMVER_SET = SEMVER + ".set";
 	var SEMVER_BUMP = SEMVER + ".bump";
+	var SEMVER_STRIP = SEMVER + ".strip";
 
 	// Default options
 	var OPTIONS = {};
@@ -47,6 +48,20 @@ module.exports = function(grunt) {
 		return result;
 	}
 
+	/**
+	 * Strips part of a semver
+	 * @param {SemVer} version
+	 * @param {String} part
+	 * @returns {SemVer} version (now without part)
+	 */
+	function strip(version, part) {
+		if (version && part) {
+			version[part] = [];
+		}
+
+		return version;
+	}
+
 	// Add SEMVER delimiters
 	grunt.template.addDelimiters(SEMVER, "{%", "%}");
 
@@ -55,12 +70,11 @@ module.exports = function(grunt) {
 		var me = this;
 
 		// Get options and process
-		var options = _process.call(_options.call(me, me.options(OPTIONS), PHASE, PART, BUILD), {
+		var options = _process.call(_options.call(me, _.defaults(_args.call(me, null, PART, BUILD), me.options(OPTIONS)), PART, BUILD), {
 			"delimiters" : SEMVER
-		}, PHASE, PART, BUILD);
+		}, PART, BUILD);
 
 		// Update parameters
-		phase = options[PHASE];
 		part = options[PART];
 		build = options[BUILD];
 
@@ -79,11 +93,11 @@ module.exports = function(grunt) {
 						}(format(semver(build ? semver.clean(part) + "+" + build : part)))));
 					}
 					catch (e) {
-						grunt.fail.warn(e);
+						grunt.warn(e);
 					}
 				}
 				else {
-					this.files.forEach(function (file) {
+					me.files.forEach(function (file) {
 						file.src.forEach(function (src) {
 							try {
 								var json = grunt.file.readJSON(src);
@@ -97,7 +111,7 @@ module.exports = function(grunt) {
 								grunt.event.emit(SEMVER_VALIDATE, version, src);
 							}
 							catch (e) {
-								grunt.fail.warn(e);
+								grunt.warn(e);
 							}
 						});
 					});
@@ -105,7 +119,7 @@ module.exports = function(grunt) {
 				break;
 
 			case "set" :
-				this.files.forEach(function (file) {
+				me.files.forEach(function (file) {
 					var dest = file.dest;
 
 					file.src.forEach(function (src) {
@@ -127,7 +141,7 @@ module.exports = function(grunt) {
 							grunt.event.emit(SEMVER_SET, version, src, dest);
 						}
 						catch (e) {
-							grunt.fail.warn(e);
+							grunt.warn(e);
 						}
 					});
 				});
@@ -139,7 +153,7 @@ module.exports = function(grunt) {
 					case "minor" :
 					case "patch" :
 					case "prerelease" :
-						this.files.forEach(function (file) {
+						me.files.forEach(function (file) {
 							var dest = file.dest;
 
 							file.src.forEach(function (src) {
@@ -157,19 +171,52 @@ module.exports = function(grunt) {
 									grunt.event.emit(SEMVER_BUMP, version, src, dest);
 								}
 								catch (e) {
-									grunt.fail.warn(e);
+									grunt.warn(e);
 								}
 							});
 						});
 						break;
 
 					default :
-						grunt.fail.warn("Unknown part '" + part + "'");
+						grunt.warn("Unknown part '" + part + "'");
+				}
+				break;
+
+			case "strip" :
+				switch (part) {
+					case "prerelease" :
+					case "build" :
+						me.files.forEach(function (file) {
+							var dest = file.dest;
+
+							file.src.forEach(function (src) {
+								try {
+									var json = grunt.file.readJSON(src);
+
+									grunt.log.verbose.writeln(src + " version : " + json[VERSION].cyan);
+
+									grunt.log.write(src + " : ");
+									var version = json[VERSION] = format(strip(semver(json[VERSION]), part));
+									grunt.log.writeln(version.green);
+
+									grunt.file.write(dest, JSON.stringify(json, null, options[SPACE]));
+
+									grunt.event.emit(SEMVER_STRIP, version, src, dest);
+								}
+								catch (e) {
+									grunt.warn(e);
+								}
+							});
+						});
+						break;
+
+					default :
+						grunt.warn("Unknown part '" + part + "'");
 				}
 				break;
 
 			default :
-				grunt.fail.warn("Unknown phase '" + phase + "'");
+				grunt.warn("Unknown phase '" + phase + "'");
 		}
 	});
 };
