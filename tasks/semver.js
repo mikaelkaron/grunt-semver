@@ -13,8 +13,8 @@ module.exports = function(grunt) {
 	var _ = grunt.util._;
 	var _process = require("grunt-util-process")(grunt);
 	var _options = require("grunt-util-options")(grunt);
+	var _args = require("grunt-util-args")(grunt);
 	var SPACE = "space";
-	var PHASE = "phase";
 	var PART = "part";
 	var BUILD = "build";
 	var VERSION = "version";
@@ -55,12 +55,11 @@ module.exports = function(grunt) {
 		var me = this;
 
 		// Get options and process
-		var options = _process.call(_options.call(me, me.options(OPTIONS), PHASE, PART, BUILD), {
+		var options = _process.call(_options.call(me, _.defaults(_args.call(me, null, PART, BUILD), me.options(OPTIONS)), PART, BUILD), {
 			"delimiters" : SEMVER
-		}, PHASE, PART, BUILD);
+		}, PART, BUILD);
 
 		// Update parameters
-		phase = options[PHASE];
 		part = options[PART];
 		build = options[BUILD];
 
