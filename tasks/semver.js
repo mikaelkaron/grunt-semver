@@ -78,11 +78,11 @@ module.exports = function(grunt) {
 						}(format(semver(build ? semver.clean(part) + "+" + build : part)))));
 					}
 					catch (e) {
-						grunt.fail.warn(e);
+						grunt.warn(e);
 					}
 				}
 				else {
-					this.files.forEach(function (file) {
+					me.files.forEach(function (file) {
 						file.src.forEach(function (src) {
 							try {
 								var json = grunt.file.readJSON(src);
@@ -96,7 +96,7 @@ module.exports = function(grunt) {
 								grunt.event.emit(SEMVER_VALIDATE, version, src);
 							}
 							catch (e) {
-								grunt.fail.warn(e);
+								grunt.warn(e);
 							}
 						});
 					});
@@ -104,7 +104,7 @@ module.exports = function(grunt) {
 				break;
 
 			case "set" :
-				this.files.forEach(function (file) {
+				me.files.forEach(function (file) {
 					var dest = file.dest;
 
 					file.src.forEach(function (src) {
@@ -126,7 +126,7 @@ module.exports = function(grunt) {
 							grunt.event.emit(SEMVER_SET, version, src, dest);
 						}
 						catch (e) {
-							grunt.fail.warn(e);
+							grunt.warn(e);
 						}
 					});
 				});
@@ -138,7 +138,7 @@ module.exports = function(grunt) {
 					case "minor" :
 					case "patch" :
 					case "prerelease" :
-						this.files.forEach(function (file) {
+						me.files.forEach(function (file) {
 							var dest = file.dest;
 
 							file.src.forEach(function (src) {
@@ -163,12 +163,12 @@ module.exports = function(grunt) {
 						break;
 
 					default :
-						grunt.fail.warn("Unknown part '" + part + "'");
+						grunt.warn("Unknown part '" + part + "'");
 				}
 				break;
 
 			default :
-				grunt.fail.warn("Unknown phase '" + phase + "'");
+				grunt.warn("Unknown phase '" + phase + "'");
 		}
 	});
 };
