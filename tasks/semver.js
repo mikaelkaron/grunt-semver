@@ -22,6 +22,7 @@ module.exports = function(grunt) {
 	var SEMVER_VALIDATE = SEMVER + ".validate";
 	var SEMVER_SET = SEMVER + ".set";
 	var SEMVER_BUMP = SEMVER + ".bump";
+	var SEMVER_STRIP = SEMVER + ".strip";
 
 	// Default options
 	var OPTIONS = {};
@@ -45,6 +46,20 @@ module.exports = function(grunt) {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Strips part of a semver
+	 * @param {SemVer} version
+	 * @param {String} part
+	 * @returns {SemVer} version (now without part)
+	 */
+	function strip(version, part) {
+		if (version && part) {
+			version[part] = [];
+		}
+
+		return version;
 	}
 
 	// Add SEMVER delimiters
@@ -156,7 +171,40 @@ module.exports = function(grunt) {
 									grunt.event.emit(SEMVER_BUMP, version, src, dest);
 								}
 								catch (e) {
-									grunt.fail.warn(e);
+									grunt.warn(e);
+								}
+							});
+						});
+						break;
+
+					default :
+						grunt.warn("Unknown part '" + part + "'");
+				}
+				break;
+
+			case "strip" :
+				switch (part) {
+					case "prerelease" :
+					case "build" :
+						me.files.forEach(function (file) {
+							var dest = file.dest;
+
+							file.src.forEach(function (src) {
+								try {
+									var json = grunt.file.readJSON(src);
+
+									grunt.log.verbose.writeln(src + " version : " + json[VERSION].cyan);
+
+									grunt.log.write(src + " : ");
+									var version = json[VERSION] = format(strip(semver(json[VERSION]), part));
+									grunt.log.writeln(version.green);
+
+									grunt.file.write(dest, JSON.stringify(json, null, options[SPACE]));
+
+									grunt.event.emit(SEMVER_STRIP, version, src, dest);
+								}
+								catch (e) {
+									grunt.warn(e);
 								}
 							});
 						});
