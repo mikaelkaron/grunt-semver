@@ -30,12 +30,88 @@ grunt.initConfig({
   "semver": {
     "options": {
       // Task-specific options go here.
+      space: "\t"
     },
     "your_target": {
       // Target-specific file lists and/or options go here.
+      files: [{
+          src: "package.json",
+          dest: "package.json.out"
+      }, { 
+          src: "bower.json",
+          dest: "bower.json.out"
+      }]
     },
   },
 })
+```
+
+#### Examples
+
+Validate a string as a correct version according to semantic versionning:
+
+```
+$ grunt semver:validate:your_target:0.1.2
+0.1.2
+
+$ grunt semver:validate:your_target:0.1.2foo
+Warning: Invalid Version: 0.1.2foo
+```
+
+Validate versions found if the given part's `files`:
+
+```
+$ grunt semver:your_target:validate
+package.json : 0.1.2
+bower.json : 0.1.2
+```
+
+Set given version in every files:
+
+```
+$ grunt semver:your_target:set:0.1.4
+package.json : 0.1.4
+bower.json : 0.1.4
+```
+
+Bump major/minor/patch/prerelease number (example starts at `0.1.2-pre.1`):
+
+```
+$ grunt semver:your_target:validate
+package.json : 0.1.2-pre.1
+bower.json : 0.1.2-pre.1
+
+$ grunt semver:your_target:bump:major
+package.json : 1.0.0
+bower.json : 1.0.0
+
+$ grunt semver:your_target:bump:minor
+package.json : 0.2.0
+bower.json : 0.2.0
+
+$ grunt semver:your_target:bump:patch
+package.json : 0.1.3
+bower.json : 0.1.3
+
+$ grunt semver:your_target:bump:prerelease
+package.json : 0.1.2-pre.2
+bower.json : 0.1.2-pre.2```
+```
+
+Strip build or prerelease information (example starts at `0.1.2-pre.1+0123456`)::
+
+```
+$ grunt semver:your_target:validate
+package.json : 0.1.2-pre.1+0123456
+bower.json : 0.1.2-pre.1+0123456
+
+$ grunt semver:your_target:strip:prerelease
+package.json : 0.1.2+0123456
+bower.json : 0.1.2+0123456
+
+$ grunt semver:your_target:strip:build
+package.json : 0.1.2-pre.1
+bower.json : 0.1.2-pre.1
 ```
 
 ### Options
