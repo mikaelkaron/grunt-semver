@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.1.7"></a>
+## [0.1.7](https://github.com/mikaelkaron/grunt-semver/compare/0.1.6...v0.1.7) (2017-03-17)
+
+
+### Features
+
+* Update build process to use standard-version ([6daf61f](https://github.com/mikaelkaron/grunt-semver/commit/6daf61f))
+
+
+
 <a name="0.1.6"></a>
 ## [0.1.6] - Further cleanup. Added support for `strip`  
 <a name="0.1.5"></a>
