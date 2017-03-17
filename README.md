@@ -124,16 +124,3 @@ A string value that is used to format the output JSON
 
 ## Contributing
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
-
-## Release History
-
-0.1.6 - Further cleanup. Added support for `strip`  
-0.1.5 - Externalize common code to separat modules  
-0.1.4 - Added support for cli arguments  
-0.1.3 - Added support for event 
-0.1.2 - Added verbose logging  
-0.1.1 - Added support for templated arguments  
-0.1.0 - First somewhat stable release  
-0.0.3 - Nothing to important  
-0.0.2 - Added support for `build`  
-0.0.1 - First release
