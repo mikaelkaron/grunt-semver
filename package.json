@@ -9,7 +9,7 @@
   },
   "scripts": {
     "release": "standard-version",
-    "build": "gulp"
+    "build": "grunt"
   },
   "repository": {
     "type": "git",
