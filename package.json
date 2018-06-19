@@ -18,12 +18,7 @@
   "bugs": {
     "url": "https://github.com/mikaelkaron/grunt-semver/issues"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://mikael.mit-license.org"
-    }
-  ],
+  "license": "MIT",
   "main": "Gruntfile.js",
   "dependencies": {
     "grunt-util-args": "^0.0.4",
