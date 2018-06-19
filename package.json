@@ -21,18 +21,18 @@
   "license": "MIT",
   "main": "Gruntfile.js",
   "dependencies": {
-    "grunt-util-args": "^0.0.4",
-    "grunt-util-options": "~0.0.2",
-    "grunt-util-process": "~0.0.1",
-    "semver": "^5.5.0"
+    "grunt-util-args": "~0.0.6",
+    "grunt-util-options": "~0.0.4",
+    "grunt-util-process": "~0.0.3",
+    "semver": "~5.5.0"
   },
   "devDependencies": {
-    "grunt": "^1.0.1",
-    "grunt-contrib-jshint": "^1.1.0",
-    "standard-version": "^4.0.0"
+    "grunt": "~1.0.3",
+    "grunt-contrib-jshint": "~1.1.0",
+    "standard-version": "~4.4.0"
   },
   "peerDependencies": {
-    "grunt": ">=0.4.0"
+    "grunt": "~1.0.3"
   },
   "keywords": [
     "gruntplugin"
